@@ -1,0 +1,1 @@
+docker build -f Dockerfiles/PHP7 -t local/php7 . && docker build -f Dockerfiles/NGINX -t local/nginx

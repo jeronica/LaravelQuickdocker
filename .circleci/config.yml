@@ -1,0 +1,59 @@
+version: 2
+general:
+  branches:
+    only:
+      - master # list of branches to build
+workflows:
+  version: 2
+  main:
+    jobs:
+    - build:
+        filters:
+          branches:
+            only: master
+jobs:
+  build:
+    working_directory: ~/laravel
+    docker:
+      - image: circleci/node:8
+    steps:
+      - checkout
+      - setup_remote_docker
+      - restore_cache:
+          keys:
+            - v6-{{ .Branch }}
+          paths:
+            - ~/caches/camper.tar
+      - run:
+          name: Load Docker image layer cache
+          command: |
+            set +o pipefail
+            docker load -i ~/caches/$PACKAGENAME.tar | true
+      - run:
+          name: Build assets
+          command: |
+            docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
+            cd laravel
+            npm install
+            npm run dev
+            cd ..
+      - run:
+          name: Build frontend image
+          command: |
+            docker build -f Dockerfiles/LaravelContainer -t $PACKAGENAME .
+      - run:
+          name: Save Docker image layer cache
+          command: |
+            mkdir -p ~/caches
+            docker save -o ~/caches/$PACKAGENAME.tar $PACKAGENAME
+      - save_cache:
+          key: v6-{{ .Branch }}-{{ epoch }}
+          paths:
+            - ~/caches/camper.tar
+      - deploy:
+          name: Push application Docker image
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
+              docker push $PACKAGENAME
+            fi

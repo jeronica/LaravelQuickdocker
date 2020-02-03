@@ -1,0 +1,35 @@
+version: "3"
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfiles/LaravelContainer
+    ports:
+     - "80:80"
+     - "4431:443"
+     - "6001:6001"
+    volumes:
+     - './laravel:/var/www/app'
+  horizon:
+    build:
+      context: .
+      dockerfile: Dockerfiles/HorizonContainer
+    volumes:
+     - './laravel:/var/www/app'
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    ports:
+     - "8080:80"
+  redis:
+    image: 'redis:latest'
+  db:
+    image: mysql:5.7
+    ports: 
+     - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: yeti
+    volumes:
+     - './mysql:/var/lib/mysql'
+volumes:
+  mydata:
+  sql: 

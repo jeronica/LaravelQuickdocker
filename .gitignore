@@ -1,0 +1,8 @@
+mysql
+mysql/
+mysql/*
+laravel/public/js/*
+laravel/cache
+laravel/logs
+.npm
+.config

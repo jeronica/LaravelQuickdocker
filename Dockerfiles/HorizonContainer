@@ -1,0 +1,26 @@
+FROM local/nginx
+MAINTAINER Jeronica
+
+RUN apt-get update
+RUN apt-get install sudo nano inetutils-ping
+
+COPY Dockerfiles/configs/supervisor-horizon.conf /etc/supervisor/conf.d/
+COPY laravel/ /var/www/app/
+
+COPY Dockerfiles/configs/nginx-laravel.conf ${NGINX_CONF_DIR}/nginx.conf
+COPY Dockerfiles/configs/app-laravel.conf ${NGINX_CONF_DIR}/sites-enabled/app.conf
+COPY Dockerfiles/configs/www-nginx.conf /etc/php/7.1/fpm/pool.d/www.conf
+
+WORKDIR /var/www/app/
+
+RUN chown www-data storage/ -R
+RUN chown www-data -R storage/
+RUN chmod 755 storage/ -R
+RUN composer install
+RUN curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+RUN sudo apt-get install -y nodejs
+
+
+EXPOSE 80 443
+
+CMD ["/usr/bin/supervisord"]
